@@ -1,0 +1,52 @@
+{
+  "name": "wotw-seed-language",
+  "displayName": "Ori WotW Seed Language",
+  "description": "Language support for .wotws files",
+  "version": "0.0.1",
+  "publisher": "ori-community",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ori-community/wotw-seed-language"
+  },
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onLanguage:wotw-seed",
+    "workspaceContains:**/*.wotws"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "wotw-seed",
+        "extensions": [
+          ".wotws"
+        ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "wotw-seed",
+        "scopeName": "source.wotws",
+        "path": "./syntaxes/wotw-seed.tmLanguage.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run esbuild-base -- --minify",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
+    "esbuild": "npm run esbuild-base -- --sourcemap"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@tsconfig/strictest": "^2.0.5",
+    "@types/node": "^20.12.3",
+    "@types/vscode": "^1.75.1",
+    "@vscode/test-electron": "^2.3.9",
+    "esbuild": "^0.20.2"
+  }
+}
