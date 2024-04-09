@@ -1,12 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-  "name": "Ori and the Will of the Wisps Seed Language",
+  "name": "Ori WotW Seed Language",
   "scopeName": "source.wotws",
-  "patterns": [{ "include": "#annotation" }],
-  "repository": {
-    "annotation": {
-      "match": "^#[^\n]*",
-      "name": "keyword"
+  "patterns": [
+    {
+      "match": "//[^\\n]*",
+      "name": "comment"
     }
-  }
+  ]
 }

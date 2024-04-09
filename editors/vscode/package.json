@@ -14,7 +14,6 @@
   },
   "main": "./dist/extension.js",
   "activationEvents": [
-    "onLanguage:wotw-seed",
     "workspaceContains:**/*.wotws"
   ],
   "contributes": {
@@ -23,7 +22,8 @@
         "id": "wotw-seed",
         "extensions": [
           ".wotws"
-        ]
+        ],
+        "configuration": "./language-configuration.json"
       }
     ],
     "grammars": [
@@ -37,7 +37,7 @@
   "scripts": {
     "vscode:prepublish": "npm run esbuild-base -- --minify",
     "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
-    "esbuild": "npm run esbuild-base -- --sourcemap"
+    "esbuild": "cargo build && npm run esbuild-base -- --sourcemap"
   },
   "dependencies": {
     "vscode-languageclient": "^9.0.1"
