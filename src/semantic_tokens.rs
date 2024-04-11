@@ -12,6 +12,8 @@ use wotw_seedgen_seed_language::ast::{
     UberIdentifier, UseArgs, UseIconArgs, ZoneOfArgs,
 };
 
+use crate::convert;
+
 pub fn semantic_tokens(source: &str, ast: Result<Snippet>) -> Vec<SemanticToken> {
     let mut builder = TokenBuilder::new(source);
     ast.tokens(&mut builder);
@@ -65,14 +67,7 @@ impl<'source> TokenBuilder<'source> {
     }
 
     fn push_token(&mut self, span: Range<usize>, token_type: TokenType) {
-        let mut line = 0;
-        let mut line_start = 0;
-        let mut line_indices = self.source[..span.start].rmatch_indices('\n');
-        if let Some((index, _)) = line_indices.next() {
-            line = 1;
-            line_start = index + 1;
-        };
-        line += line_indices.count();
+        let (line, line_start) = convert::last_line(&self.source[..span.start]);
 
         let delta_line = (line - mem::replace(&mut self.previous_line, line)) as u32;
         let previous_offset = if delta_line == 0 {
