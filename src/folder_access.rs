@@ -1,43 +1,30 @@
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 use tower_lsp::lsp_types::Url;
-use wotw_seedgen_seed_language::assets::{SnippetAccess, Source};
+use wotw_seedgen_seed_language::assets::{FileAccess, SnippetAccess, Source};
+use wotw_seedgen_static_assets::SNIPPET_ACCESS;
 
 pub struct FolderAccess {
-    folder: PathBuf,
+    file_access: FileAccess,
 }
 
 impl FolderAccess {
     pub fn new<P: AsRef<Path>>(source: P) -> Self {
-        Self {
-            folder: source
-                .as_ref()
-                .parent()
-                .map_or_else(Default::default, Path::to_path_buf),
-        }
+        let folder = source.as_ref().parent().unwrap_or(Path::new(""));
+        let file_access = FileAccess::new([folder]);
+        Self { file_access }
     }
 }
 
 impl SnippetAccess for FolderAccess {
     fn read_snippet(&self, identifier: &str) -> Result<Source, String> {
-        let id = format!(
-            "{}.wotws",
-            self.folder
-                .join(identifier)
-                .to_str()
-                .ok_or_else(|| "invalid unicode in snippet identifier")?
-        );
-        let content =
-            fs::read_to_string(&id).map_err(|err| format!("failed to read \"{id}\": {err}"))?;
-        Ok(Source { id, content })
+        self.file_access
+            .read_snippet(identifier)
+            .or_else(|err| SNIPPET_ACCESS.read_snippet(identifier).map_err(|_| err))
     }
 
     fn read_file(&self, path: &Path) -> Result<Vec<u8>, String> {
-        let path = self.folder.join(path);
-        fs::read(&path).map_err(|err| format!("failed to read \"{}\": {err}", path.display()))
+        self.file_access.read_file(path)
     }
 }
 
