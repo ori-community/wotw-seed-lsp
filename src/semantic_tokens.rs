@@ -616,7 +616,7 @@ impl Tokens for RandomFromPoolArgs<'_> {
 }
 impl Tokens for FunctionDefinition<'_> {
     fn tokens(self, builder: &mut TokenBuilder) {
-        builder.push_token(self.identifier.span, TokenType::Variable);
+        builder.push_token(self.identifier.span, TokenType::Function);
         self.actions.tokens(builder);
     }
 }
