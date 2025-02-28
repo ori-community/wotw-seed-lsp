@@ -1,0 +1,35 @@
+name: build
+
+on:
+  - push
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+
+    steps:
+      - name: Checkout 🛎
+        uses: actions/checkout@master
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: latest
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Package Extension
+        run: |
+          npm install -g @vscode/vsce
+          vsce package
+
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wotw-seed-language
+          path: wotw-seed-language-*.vsix
+          if-no-files-found: error

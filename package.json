@@ -3,7 +3,7 @@
   "displayName": "Ori WotW Seed Language",
   "description": "Language support for .wotws files",
   "version": "0.0.1",
-  "publisher": "Ori Community",
+  "publisher": "ori-community",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -57,6 +57,6 @@
     "@types/node": "^20.12.3",
     "@types/vscode": "^1.75.1",
     "@vscode/test-electron": "^2.3.9",
-    "esbuild": "^0.20.2"
+    "esbuild": "^0.25.0"
   }
 }
