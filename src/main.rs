@@ -81,10 +81,11 @@ impl Backend {
                 &folder_access,
                 &*UBER_STATE_DATA,
                 Default::default(),
+                false,
             );
             // TODO currently we can only give diagnostics for saved files because we're not using the editors in-memory changes
             // Need to do changes in the language create to improve that
-            compiler.compile_snippet(identifier).unwrap();
+            compiler.compile_snippet(identifier).unwrap(); // TODO have to gracefully exit here, path might be outdated
             let (source, errors) = compiler
                 .finish()
                 .errors

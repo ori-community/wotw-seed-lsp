@@ -3,7 +3,7 @@
   "displayName": "Ori WotW Seed Language",
   "description": "Language support for .wotws files",
   "version": "0.0.1",
-  "publisher": "ori-community",
+  "publisher": "Ori Community",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -32,7 +32,17 @@
         "scopeName": "source.wotws",
         "path": "./syntaxes/wotw-seed.tmLanguage.json"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Ori WotW Seed Language",
+      "properties": {
+        "wotws.languageServer": {
+          "type": "string",
+          "default": "",
+          "description": "Path to seedgen"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run esbuild-base -- --minify",

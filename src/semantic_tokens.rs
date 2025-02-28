@@ -1,15 +1,15 @@
 use std::{mem, ops::Range};
 use tower_lsp::lsp_types::{SemanticToken, SemanticTokenType, SemanticTokensLegend};
 use wotw_seedgen_seed_language::ast::{
-    Action, ActionCondition, AddArgs, Annotation, CallbackArgs, ChangeItemPoolArgs, Command,
-    CommandIf, CommandRepeat, ConfigArgs, Content, CountInZoneArgs, CountInZoneBinding, Delimited,
-    Event, Expression, ExpressionValue, FlagArg, FunctionCall, FunctionDefinition, IncludeArgs,
-    IncludeIconArgs, ItemDataArgs, ItemDataDescriptionArgs, ItemDataIconArgs, ItemDataNameArgs,
-    ItemDataPriceArgs, ItemOnArgs, LetArgs, Literal, OnCallbackArgs, Once, Operation, PreplaceArgs,
-    Punctuated, RandomFloatArgs, RandomFromPoolArgs, RandomIntegerArgs, RandomNumberArgs,
-    RandomPoolArgs, Recoverable, RemoveArgs, Result, SeparatedNonEmpty, SetLogicStateArgs,
-    ShareArgs, Snippet, Span, Spanned, SpawnArgs, StateArgs, TimerArgs, Trigger, TriggerBinding,
-    UberIdentifier, UseArgs, UseIconArgs, ZoneOfArgs,
+    Action, ActionCondition, AddArgs, Annotation, BuiltinIconArgs, BundleIconArgs,
+    ChangeItemPoolArgs, Command, CommandIf, CommandRepeat, ConfigArgs, Content, CountInZoneArgs,
+    CountInZoneBinding, Delimited, Event, EventArgs, ExportArgs, Expression, ExpressionValue,
+    FunctionCall, FunctionDefinition, IncludeArgs, ItemDataArgs, ItemDataDescriptionArgs,
+    ItemDataIconArgs, ItemDataNameArgs, ItemDataPriceArgs, ItemOnArgs, LetArgs, Literal,
+    OnEventArgs, Once, Operation, PreplaceArgs, Punctuated, RandomFloatArgs, RandomFromPoolArgs,
+    RandomIntegerArgs, RandomNumberArgs, RandomPoolArgs, Recoverable, RemoveArgs, Result,
+    Separated, SeparatedNonEmpty, SetLogicStateArgs, Snippet, Span, Spanned, SpawnArgs, StateArgs,
+    TagsArg, TimerArgs, Trigger, TriggerBinding, UberIdentifier, ZoneOfArgs,
 };
 
 use crate::convert;
@@ -113,8 +113,9 @@ impl<T: Tokens> Tokens for Box<T> {
 }
 impl<T: Tokens> Tokens for Result<T> {
     fn tokens(self, builder: &mut TokenBuilder) {
-        let Ok(t) = self else { return };
-        t.tokens(builder);
+        if let Ok(t) = self {
+            t.tokens(builder);
+        }
     }
 }
 impl<T: Tokens, R> Tokens for Recoverable<T, R> {
@@ -135,6 +136,13 @@ impl<V: Tokens> Tokens for Once<V> {
     }
 }
 impl<Item: Tokens, const PUNCTUATION: char> Tokens for Punctuated<Item, PUNCTUATION> {
+    fn tokens(self, builder: &mut TokenBuilder) {
+        for item in self {
+            item.tokens(builder);
+        }
+    }
+}
+impl<Item: Tokens, Separator> Tokens for Separated<Item, Separator> {
     fn tokens(self, builder: &mut TokenBuilder) {
         for item in self {
             item.tokens(builder);
@@ -287,27 +295,23 @@ impl Tokens for Command<'_> {
                 builder.push_token(keyword.span, TokenType::Macro);
                 args.tokens(builder);
             }
-            Command::IncludeIcon(keyword, args) => {
+            Command::BundleIcon(keyword, args) => {
                 builder.push_token(keyword.span, TokenType::Macro);
                 args.tokens(builder);
             }
-            Command::UseIcon(keyword, args) => {
+            Command::BuiltinIcon(keyword, args) => {
                 builder.push_token(keyword.span, TokenType::Macro);
                 args.tokens(builder);
             }
-            Command::Callback(keyword, args) => {
+            Command::Event(keyword, args) => {
                 builder.push_token(keyword.span, TokenType::Macro);
                 args.tokens(builder);
             }
-            Command::OnCallback(keyword, args) => {
+            Command::OnEvent(keyword, args) => {
                 builder.push_token(keyword.span, TokenType::Macro);
                 args.tokens(builder);
             }
-            Command::Share(keyword, args) => {
-                builder.push_token(keyword.span, TokenType::Macro);
-                args.tokens(builder);
-            }
-            Command::Use(keyword, args) => {
+            Command::Export(keyword, args) => {
                 builder.push_token(keyword.span, TokenType::Macro);
                 args.tokens(builder);
             }
@@ -315,7 +319,7 @@ impl Tokens for Command<'_> {
                 builder.push_token(keyword.span, TokenType::Macro);
                 args.tokens(builder);
             }
-            Command::Flag(keyword, args) => {
+            Command::Tags(keyword, args) => {
                 builder.push_token(keyword.span, TokenType::Macro);
                 args.tokens(builder);
             }
@@ -412,42 +416,41 @@ impl Tokens for Command<'_> {
 }
 impl Tokens for IncludeArgs<'_> {
     fn tokens(self, builder: &mut TokenBuilder) {
-        self.0.tokens(builder);
+        self.path.tokens(builder);
+        if let Some((_, imports)) = self.imports.data {
+            for import in imports {
+                builder.push_token(import.span, TokenType::Variable);
+            }
+        }
     }
 }
-impl Tokens for IncludeIconArgs<'_> {
+impl Tokens for BundleIconArgs<'_> {
     fn tokens(self, builder: &mut TokenBuilder) {
         builder.push_token(self.identifier.span, TokenType::Variable);
         self.path.tokens(builder);
     }
 }
-impl Tokens for UseIconArgs<'_> {
+impl Tokens for BuiltinIconArgs<'_> {
     fn tokens(self, builder: &mut TokenBuilder) {
         builder.push_token(self.identifier.span, TokenType::Variable);
         self.path.tokens(builder);
     }
 }
-impl Tokens for CallbackArgs<'_> {
+impl Tokens for EventArgs<'_> {
     fn tokens(self, builder: &mut TokenBuilder) {
         builder.push_token(self.0.span, TokenType::Variable);
     }
 }
-impl Tokens for OnCallbackArgs<'_> {
+impl Tokens for OnEventArgs<'_> {
     fn tokens(self, builder: &mut TokenBuilder) {
         self.snippet_name.tokens(builder);
         builder.push_token(self.identifier.span, TokenType::Variable);
         self.action.tokens(builder);
     }
 }
-impl Tokens for ShareArgs<'_> {
+impl Tokens for ExportArgs<'_> {
     fn tokens(self, builder: &mut TokenBuilder) {
         builder.push_token(self.0.span, TokenType::Variable);
-    }
-}
-impl Tokens for UseArgs<'_> {
-    fn tokens(self, builder: &mut TokenBuilder) {
-        self.snippet_name.tokens(builder);
-        builder.push_token(self.identifier.span, TokenType::Variable);
     }
 }
 impl Tokens for SpawnArgs<'_> {
@@ -456,7 +459,7 @@ impl Tokens for SpawnArgs<'_> {
         self.y.tokens(builder);
     }
 }
-impl Tokens for FlagArg<'_> {
+impl Tokens for TagsArg<'_> {
     fn tokens(self, builder: &mut TokenBuilder) {
         self.0.tokens(builder);
     }
@@ -623,7 +626,7 @@ impl Tokens for FunctionDefinition<'_> {
 impl Tokens for Annotation<'_> {
     fn tokens(self, builder: &mut TokenBuilder) {
         match self {
-            Annotation::Hide(keyword) => {
+            Annotation::Hidden(keyword) => {
                 builder.push_token(keyword.span, TokenType::Macro);
             }
             Annotation::Name(keyword, args) => {

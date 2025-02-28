@@ -1,4 +1,4 @@
-import { window, ExtensionContext } from "vscode";
+import { ExtensionContext, workspace } from "vscode";
 
 import {
   Executable,
@@ -10,15 +10,25 @@ import {
 let client: LanguageClient | undefined;
 
 export function activate(context: ExtensionContext): Promise<void> {
-  return startClient(context).catch((e) => {
-    void window.showErrorMessage(`Failed to activate wotw-seed-language: ${e}`);
-    throw e;
-  });
+  return startClient(context);
+}
+
+interface Configuration {
+  languageServer: string;
 }
 
 async function startClient(_context: ExtensionContext): Promise<void> {
+  const configuration = workspace.getConfiguration(
+    "wotws"
+  ) as unknown as Configuration;
+  const languageServer = configuration.languageServer;
+
+  if (!languageServer)
+    throw "No language server configured. Please add your seedgen path to the extension settings (wotws.languageServer).";
+
   const serverExecutable: Executable = {
-    command: "F:/dev/github/wotw-seed-lsp/target/debug/wotw-seed-lsp.exe", // TODO obtain language server
+    command: languageServer,
+    args: ["lsp"],
   };
   const serverOptions: ServerOptions = {
     run: serverExecutable,
